@@ -9,43 +9,28 @@ const request = require('request');
  */
 
 
-const fetchMyIP = function(callback) {
+const fetchMyIP = (callback) => {
+  // error can be set if invalid domain, user is offline, etc.
   request('https://api.ipify.org?format=json', (err, response, body) => {
+
     if (err) {
       return callback(err, null);
     }
-
-    if (response.statusCode !== 200) {
-      return callback(Error(`Status Code ${response.statusCode} when fetching IP: ${body}`), null);
+    // if non-200 status, assume server error
+    if (response.statuscode !== 200) {
+      const msg = `Status Code ${response.statuscode} when fetching IP.Response: ${body}`;
+      callback(Error(msg), null);
+      return;
     }
-
     const ip = JSON.parse(body).ip;
+
     callback(null, ip);
   });
 };
 
-// const fetchMyIP = function(callback) {
-//   // error can be set if invalid domain, user is offline, etc.
-//   request('https://api.ipify.org?format=json', (err, response, body) => {
-
-//     if (err) {
-//       return callback(err, null);
-//     }
-//     // if non-200 status, assume server error
-//     if (response.statuscode !== 200) {
-//       const msg = `Status Code ${response.statuscode} when fetching IP.Response: ${body}`;
-//       callback(Error(msg), null);
-//       return;
-//     }
-//     const ip = JSON.parse(body).ip;
-
-//     callback(null, ip);
-//   });
-// };
 
 
-
-const fetchCoordsByIP = function(ip, callback) {
+const fetchCoordsByIP = (ip, callback) => {
   request(`http://ipwho.is/${ip}`, (err, response, body) => {
 
     if (err) {
@@ -99,34 +84,14 @@ const fetchISSFlyOverTimes = function(coords, callback) {
 /**
  * Orchestrates multiple API requests in order to determine the next 5 upcoming ISS fly overs for the user's current location.
  * Input:
- *   - A callback with an error or results.
+ *   - A callback with an error or results. 
  * Returns (via Callback):
  *   - An error, if any (nullable)
  *   - The fly-over times as an array (null if error):
  *     [ { risetime: <number>, duration: <number> }, ... ]
- */
+ */ 
+ const nextISSTimesForMyLocation = function(callback) {
+  // empty for now
+}
 
-const nextISSTimesForMyLocation = function(callback) {
-  fetchMyIP((err, ip) => {
-    if (err) {
-      return callback(err, null);
-    }
-
-    fetchCoordsByIP(ip, (err, coordinates) => {
-      if (err) {
-        return callback(err, null);
-      }
-
-      fetchISSFlyOverTimes(coordinates, (err, passes) => {
-        if (err) {
-          return callback(err, null);
-        }
-
-        callback(null, passes);
-      });
-    });
-  });
-};
-
-module.exports = { nextISSTimesForMyLocation };
-//module.exports = {fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes}
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes, nextISSTimesForMyLocation };
